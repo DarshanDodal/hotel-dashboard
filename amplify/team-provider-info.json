@@ -1,0 +1,15 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-hoteldashboard-dev-102837-authRole",
+      "UnauthRoleArn": "arn:aws:iam::493630275025:role/amplify-hoteldashboard-dev-102837-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::493630275025:role/amplify-hoteldashboard-dev-102837-authRole",
+      "Region": "ap-south-1",
+      "DeploymentBucketName": "amplify-hoteldashboard-dev-102837-deployment",
+      "UnauthRoleName": "amplify-hoteldashboard-dev-102837-unauthRole",
+      "StackName": "amplify-hoteldashboard-dev-102837",
+      "StackId": "arn:aws:cloudformation:ap-south-1:493630275025:stack/amplify-hoteldashboard-dev-102837/36bf65e0-3524-11eb-9f05-0666b780c650",
+      "AmplifyAppId": "d1lvszpdtcfdgp"
+    }
+  }
+}
