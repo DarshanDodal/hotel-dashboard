@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import {
@@ -10,8 +11,9 @@ import {
   Divider,
   Grid,
   TextField,
-  makeStyles,
+  makeStyles
 } from '@material-ui/core';
+import { AccountContext } from 'src/views/auth/Account';
 
 const states = [
   {
@@ -28,13 +30,13 @@ const states = [
   }
 ];
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {},
   textField: {
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
-    width: 150,
-  },
+    width: 150
+  }
 }));
 
 const ProfileDetails = ({ className, ...rest }) => {
@@ -48,15 +50,20 @@ const ProfileDetails = ({ className, ...rest }) => {
     country: 'USA'
   });
 
-  const handleChange = (event) => {
+  const handleChange = event => {
     setValues({
       ...values,
       [event.target.name]: event.target.value
     });
   };
 
-  
-  
+  const handleOnClickLogout = LogOut => {
+    LogOut();
+    navigate('/login', { replace: true });
+  };
+  const { logout } = useContext(AccountContext);
+
+  const navigate = useNavigate();
   return (
     <form
       autoComplete="off"
@@ -65,21 +72,11 @@ const ProfileDetails = ({ className, ...rest }) => {
       {...rest}
     >
       <Card>
-        <CardHeader
-          subheader="The information can be edited"
-          title="Profile"
-        />
+        <CardHeader subheader="The information can be edited" title="Profile" />
         <Divider />
         <CardContent>
-          <Grid
-            container
-            spacing={3}
-          >
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
+          <Grid container spacing={3}>
+            <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
                 helperText="Please specify the Hotel name"
@@ -88,14 +85,10 @@ const ProfileDetails = ({ className, ...rest }) => {
                 onChange={handleChange}
                 required
                 value={values.hotelName}
-                placeholder= 'Hotel Name'
+                placeholder="Hotel Name"
               />
             </Grid>
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
+            <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
                 label="Owner Name"
@@ -103,14 +96,10 @@ const ProfileDetails = ({ className, ...rest }) => {
                 onChange={handleChange}
                 required
                 value={values.ownerName}
-                placeholder= 'Owner Name'
+                placeholder="Owner Name"
               />
             </Grid>
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
+            <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
                 label="Email Address"
@@ -118,14 +107,10 @@ const ProfileDetails = ({ className, ...rest }) => {
                 onChange={handleChange}
                 required
                 value={values.email}
-                placeholder= 'Email Id'
+                placeholder="Email Id"
               />
             </Grid>
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
+            <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
                 label="Phone Number"
@@ -133,14 +118,10 @@ const ProfileDetails = ({ className, ...rest }) => {
                 onChange={handleChange}
                 type="number"
                 value={values.phone}
-                placeholder= 'Mobile Name'
+                placeholder="Mobile Name"
               />
             </Grid>
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
+            <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
                 label="Liscense Number"
@@ -148,54 +129,42 @@ const ProfileDetails = ({ className, ...rest }) => {
                 onChange={handleChange}
                 required
                 value={values.liscense}
-                placeholder= 'Liscense Number'
+                placeholder="Liscense Number"
               />
             </Grid>
-            <Grid
-              item
-              md={3}
-              xs={6}
-            >
-               <TextField
-                  required
-                  id="time"
-                  label="Open From"
-                  type="time"
-                  defaultValue="07:30"
-                  className={classes.textField}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  inputProps={{
-                    step: 300, // 5 min
-                  }}
-                />
-                </Grid>
-                <Grid
-                    item
-                    md={3}
-                    xs={6}
-                  >
-                 <TextField
-                  required
-                  id="time"
-                  label="Open To"
-                  type="time"
-                  defaultValue="11:30"
-                  className={classes.textField}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  inputProps={{
-                    step: 300, // 5 min
-                  }}
-                />
+            <Grid item md={3} xs={6}>
+              <TextField
+                required
+                id="time"
+                label="Open From"
+                type="time"
+                defaultValue="07:30"
+                className={classes.textField}
+                InputLabelProps={{
+                  shrink: true
+                }}
+                inputProps={{
+                  step: 300 // 5 min
+                }}
+              />
             </Grid>
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
+            <Grid item md={3} xs={6}>
+              <TextField
+                required
+                id="time"
+                label="Open To"
+                type="time"
+                defaultValue="11:30"
+                className={classes.textField}
+                InputLabelProps={{
+                  shrink: true
+                }}
+                inputProps={{
+                  step: 300 // 5 min
+                }}
+              />
+            </Grid>
+            <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
                 label="Country"
@@ -203,14 +172,10 @@ const ProfileDetails = ({ className, ...rest }) => {
                 onChange={handleChange}
                 required
                 value={values.country}
-                placeholder= 'Country'
+                placeholder="Country"
               />
             </Grid>
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
+            <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
                 label="Select State"
@@ -220,49 +185,33 @@ const ProfileDetails = ({ className, ...rest }) => {
                 select
                 SelectProps={{ native: true }}
                 value={values.state}
-                placeholder= 'State'
+                placeholder="State"
               >
-                {states.map((option) => (
-                  <option
-                    key={option.value}
-                    value={option.value}
-                  >
+                {states.map(option => (
+                  <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
               </TextField>
             </Grid>
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
-               <Button color="primary">Upload Proof</Button>
-                </Grid>
+            <Grid item md={6} xs={12}>
+              <Button color="primary">Upload Proof</Button>
+            </Grid>
           </Grid>
         </CardContent>
         <Divider />
-        <Box
-          display= 'inline'
-          style={{float: "left"}}
-          p={2}
-        >
+        <Box display="inline" style={{ float: 'left' }} p={2}>
           <Button
             color="primary"
             variant="contained"
+            onClick={handleOnClickLogout(logout)}
+            to="/login"
           >
             Log Out
           </Button>
         </Box>
-        <Box
-          display='inline'
-          style={{float: "right"}}
-          p={2}
-        >
-          <Button
-            color="primary"
-            variant="contained"
-          >
+        <Box display="inline" style={{ float: 'right' }} p={2}>
+          <Button color="primary" variant="contained">
             Save details
           </Button>
         </Box>

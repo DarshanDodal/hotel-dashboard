@@ -10,13 +10,24 @@ import {
   Link,
   TextField,
   Typography,
-  makeStyles
+  makeStyles,
+  Snackbar
 } from '@material-ui/core';
 import FacebookIcon from 'src/icons/Facebook';
 import GoogleIcon from 'src/icons/Google';
 import Page from 'src/components/Page';
+import {
+  CognitoUser,
+  AuthenticationDetails,
+  CookieStorage
+} from 'amazon-cognito-identity-js';
+import UserPool from './cognitoClient';
+import MuiAlert from '@material-ui/lab/Alert';
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     backgroundColor: theme.palette.background.dark,
     height: '100%',
@@ -27,13 +38,22 @@ const useStyles = makeStyles((theme) => ({
 
 const LoginView = () => {
   const classes = useStyles();
+  const [open, setOpen] = React.useState(false);
+  const [severity, setSeverity] = React.useState('');
+  const [message, setMessage] = React.useState('');
+
   const navigate = useNavigate();
 
+  const handleSnackBarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
+
   return (
-    <Page
-      className={classes.root}
-      title="Login"
-    >
+    <Page className={classes.root} title="Login">
       <Box
         display="flex"
         flexDirection="column"
@@ -43,15 +63,45 @@ const LoginView = () => {
         <Container maxWidth="sm">
           <Formik
             initialValues={{
-              email: 'demo@devias.io',
-              password: 'Password123'
+              email: '',
+              password: ''
             }}
             validationSchema={Yup.object().shape({
-              email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-              password: Yup.string().max(255).required('Password is required')
+              email: Yup.string()
+                .email('Must be a valid email')
+                .max(255)
+                .required('Email is required'),
+              password: Yup.string()
+                .max(255)
+                .required('Password is required')
             })}
-            onSubmit={() => {
-              navigate('/app/dashboard', { replace: true });
+            onSubmit={(values, action) => {
+              const user = new CognitoUser({
+                Username: values.email,
+                Pool: UserPool
+              });
+              const authDetails = new AuthenticationDetails({
+                Username: values.email,
+                Password: values.password
+              });
+
+              user.authenticateUser(authDetails, {
+                onSuccess: data => {
+                  console.log('onSuccess:', data);
+                  navigate('/app/dashboard', { replace: true });
+                },
+
+                onFailure: err => {
+                  setSeverity('error');
+                  setMessage(err.message);
+                  setOpen(true);
+                  console.error('onFailure:', err);
+                },
+
+                newPasswordRequired: data => {
+                  console.log('newPasswordRequired:', data);
+                }
+              });
             }}
           >
             {({
@@ -65,10 +115,7 @@ const LoginView = () => {
             }) => (
               <form onSubmit={handleSubmit}>
                 <Box mb={3}>
-                  <Typography
-                    color="textPrimary"
-                    variant="h2"
-                  >
+                  <Typography color="textPrimary" variant="h2">
                     Sign in
                   </Typography>
                   <Typography
@@ -79,15 +126,8 @@ const LoginView = () => {
                     Sign in on the internal platform
                   </Typography>
                 </Box>
-                <Grid
-                  container
-                  spacing={3}
-                >
-                  <Grid
-                    item
-                    xs={12}
-                    md={6}
-                  >
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
                     <Button
                       color="primary"
                       fullWidth
@@ -99,11 +139,7 @@ const LoginView = () => {
                       Login with Facebook
                     </Button>
                   </Grid>
-                  <Grid
-                    item
-                    xs={12}
-                    md={6}
-                  >
+                  <Grid item xs={12} md={6}>
                     <Button
                       fullWidth
                       startIcon={<GoogleIcon />}
@@ -115,10 +151,7 @@ const LoginView = () => {
                     </Button>
                   </Grid>
                 </Grid>
-                <Box
-                  mt={3}
-                  mb={1}
-                >
+                <Box mt={3} mb={1}>
                   <Typography
                     align="center"
                     color="textSecondary"
@@ -165,17 +198,10 @@ const LoginView = () => {
                     Sign in now
                   </Button>
                 </Box>
-                <Typography
-                  color="textSecondary"
-                  variant="body1"
-                >
-                  Don&apos;t have an account?
-                  {' '}
-                  <Link
-                    component={RouterLink}
-                    to="/register"
-                    variant="h6"
-                  >
+
+                <Typography color="textSecondary" variant="body1">
+                  Don&apos;t have an account?{' '}
+                  <Link component={RouterLink} to="/register" variant="h6">
                     Sign up
                   </Link>
                 </Typography>
@@ -183,6 +209,15 @@ const LoginView = () => {
             )}
           </Formik>
         </Container>
+        <Snackbar
+          open={open}
+          autoHideDuration={6000}
+          onClose={handleSnackBarClose}
+        >
+          <Alert onClose={handleSnackBarClose} severity={severity}>
+            {message}
+          </Alert>
+        </Snackbar>
       </Box>
     </Page>
   );

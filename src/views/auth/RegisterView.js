@@ -11,11 +11,18 @@ import {
   Link,
   TextField,
   Typography,
-  makeStyles
+  makeStyles,
+  Snackbar
 } from '@material-ui/core';
 import Page from 'src/components/Page';
+import { CognitoUserAttribute, CognitoUser } from 'amazon-cognito-identity-js';
+import UserPool from './cognitoClient';
+import MuiAlert from '@material-ui/lab/Alert';
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     backgroundColor: theme.palette.background.dark,
     height: '100%',
@@ -26,13 +33,21 @@ const useStyles = makeStyles((theme) => ({
 
 const RegisterView = () => {
   const classes = useStyles();
+  const [open, setOpen] = React.useState(false);
+  const [severity, setSeverity] = React.useState('');
+  const [message, setMessage] = React.useState('');
   const navigate = useNavigate();
 
+  const handleSnackBarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
+
   return (
-    <Page
-      className={classes.root}
-      title="Register"
-    >
+    <Page className={classes.root} title="Register">
       <Box
         display="flex"
         flexDirection="column"
@@ -45,20 +60,80 @@ const RegisterView = () => {
               email: '',
               firstName: '',
               lastName: '',
+              phoneNumber: '',
               password: '',
               policy: false
             }}
-            validationSchema={
-              Yup.object().shape({
-                email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-                firstName: Yup.string().max(255).required('First name is required'),
-                lastName: Yup.string().max(255).required('Last name is required'),
-                password: Yup.string().max(255).required('password is required'),
-                policy: Yup.boolean().oneOf([true], 'This field must be checked')
-              })
-            }
-            onSubmit={() => {
-              navigate('/app/dashboard', { replace: true });
+            validationSchema={Yup.object().shape({
+              email: Yup.string()
+                .email('Must be a valid email')
+                .max(255)
+                .required('Email is required'),
+              firstName: Yup.string()
+                .max(255)
+                .required('First name is required'),
+              lastName: Yup.string()
+                .max(255)
+                .required('Last name is required'),
+
+              password: Yup.string()
+                .max(255)
+                .required('password is required')
+                .min(8, 'Min 8 characters are required'),
+              policy: Yup.boolean().oneOf([true], 'This field must be checked')
+            })}
+            onSubmit={(values, actions) => {
+              setTimeout(() => {
+                alert(JSON.stringify(values, null, 2));
+                var attributeList = [];
+                var dataFirstName = {
+                  Name: 'custom:firstName',
+                  Value: values.firstName
+                };
+
+                var dataLastName = {
+                  Name: 'custom:lastName',
+                  Value: values.lastName
+                };
+                var dataPhoneNumber = {
+                  Name: 'phone_number',
+                  Value: values.phoneNumber
+                };
+                var attributeFirstName = new CognitoUserAttribute(
+                  dataFirstName
+                );
+                var attributeLastName = new CognitoUserAttribute(dataLastName);
+                var attributePhoneNumber = new CognitoUserAttribute(
+                  dataPhoneNumber
+                );
+
+                attributeList.push(attributeFirstName);
+                attributeList.push(attributeLastName);
+                attributeList.push(attributePhoneNumber);
+                UserPool.signUp(
+                  values.email,
+                  values.password,
+                  attributeList,
+                  null,
+                  function(err, result) {
+                    if (err) {
+                      setSeverity('error');
+                      setMessage(err.message);
+                      setOpen(true);
+                      console.log(err);
+                      return;
+                    }
+                    var cognitoUser = result.user;
+                    console.log(result);
+                    setSeverity('success');
+                    setMessage('Account created sucessfully!');
+                    setOpen(true);
+                  }
+                );
+                actions.setSubmitting(false);
+
+                // navigate('/app/dashboard', { replace: true });
+              }, 1000);
             }}
           >
             {({
@@ -72,10 +147,7 @@ const RegisterView = () => {
             }) => (
               <form onSubmit={handleSubmit}>
                 <Box mb={3}>
-                  <Typography
-                    color="textPrimary"
-                    variant="h2"
-                  >
+                  <Typography color="textPrimary" variant="h2">
                     Create new account
                   </Typography>
                   <Typography
@@ -124,6 +196,19 @@ const RegisterView = () => {
                   variant="outlined"
                 />
                 <TextField
+                  error={Boolean(touched.phoneNumber && errors.phoneNumber)}
+                  fullWidth
+                  helperText={touched.phoneNumber && errors.phoneNumber}
+                  label="Phone"
+                  margin="normal"
+                  name="phoneNumber"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.phoneNumber}
+                  variant="outlined"
+                  placeholder="Format: +91982*****23"
+                />
+                <TextField
                   error={Boolean(touched.password && errors.password)}
                   fullWidth
                   helperText={touched.password && errors.password}
@@ -136,22 +221,14 @@ const RegisterView = () => {
                   value={values.password}
                   variant="outlined"
                 />
-                <Box
-                  alignItems="center"
-                  display="flex"
-                  ml={-1}
-                >
+                <Box alignItems="center" display="flex" ml={-1}>
                   <Checkbox
                     checked={values.policy}
                     name="policy"
                     onChange={handleChange}
                   />
-                  <Typography
-                    color="textSecondary"
-                    variant="body1"
-                  >
-                    I have read the
-                    {' '}
+                  <Typography color="textSecondary" variant="body1">
+                    I have read the{' '}
                     <Link
                       color="primary"
                       component={RouterLink}
@@ -164,9 +241,7 @@ const RegisterView = () => {
                   </Typography>
                 </Box>
                 {Boolean(touched.policy && errors.policy) && (
-                  <FormHelperText error>
-                    {errors.policy}
-                  </FormHelperText>
+                  <FormHelperText error>{errors.policy}</FormHelperText>
                 )}
                 <Box my={2}>
                   <Button
@@ -180,17 +255,9 @@ const RegisterView = () => {
                     Sign up now
                   </Button>
                 </Box>
-                <Typography
-                  color="textSecondary"
-                  variant="body1"
-                >
-                  Have an account?
-                  {' '}
-                  <Link
-                    component={RouterLink}
-                    to="/login"
-                    variant="h6"
-                  >
+                <Typography color="textSecondary" variant="body1">
+                  Have an account?{' '}
+                  <Link component={RouterLink} to="/login" variant="h6">
                     Sign in
                   </Link>
                 </Typography>
@@ -198,6 +265,15 @@ const RegisterView = () => {
             )}
           </Formik>
         </Container>
+        <Snackbar
+          open={open}
+          autoHideDuration={6000}
+          onClose={handleSnackBarClose}
+        >
+          <Alert onClose={handleSnackBarClose} severity={severity}>
+            {message}
+          </Alert>
+        </Snackbar>
       </Box>
     </Page>
   );
