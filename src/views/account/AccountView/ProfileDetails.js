@@ -57,11 +57,11 @@ const ProfileDetails = ({ className, ...rest }) => {
     });
   };
 
-  const handleOnClickLogout = LogOut => {
-    LogOut();
-    navigate('/login', { replace: true });
-  };
-  const { logout } = useContext(AccountContext);
+  // const handleOnClickLogout = LogOut => {
+  //   LogOut();
+  //   navigate('/login', { replace: true });
+  // };
+  // const { logout } = useContext(AccountContext);
 
   const navigate = useNavigate();
   return (
@@ -204,7 +204,7 @@ const ProfileDetails = ({ className, ...rest }) => {
           <Button
             color="primary"
             variant="contained"
-            onClick={handleOnClickLogout(logout)}
+            onClick={navigate('/login', { replace: true })}
             to="/login"
           >
             Log Out

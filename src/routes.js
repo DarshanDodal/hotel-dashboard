@@ -14,10 +14,10 @@ import SettingsView from 'src/views/settings/SettingsView';
 import { Account, AccountContext } from 'src/views/auth/Account';
 import Pool from 'src/views/auth/cognitoClient';
 
-const routes = isLoggedIn => [
+const routes = [
   {
     path: 'app',
-    element: isLoggedIn ? <DashboardLayout /> : <Navigate to="/login" />,
+    element: <DashboardLayout />,
     children: [
       { path: 'account', element: <AccountView /> },
       { path: 'customers', element: <CustomerListView /> },
@@ -29,7 +29,7 @@ const routes = isLoggedIn => [
   },
   {
     path: '/',
-    element: !isLoggedIn ? <MainLayout /> : <Navigate to="/app/dashboard" />,
+    element: <MainLayout />,
     children: [
       { path: 'login', element: <LoginView /> },
       { path: 'register', element: <RegisterView /> },
@@ -39,16 +39,16 @@ const routes = isLoggedIn => [
     ]
   }
 ];
-const RoutesView = props => {
-  const [User, setUser] = useState([]);
+// const RoutesView = props => {
+//   const [User, setUser] = useState([]);
 
-  const { getSession, logout, logedIn } = useContext(AccountContext);
+//   const { getSession, logout, logedIn } = useContext(AccountContext);
 
-  useEffect(() => {}, []);
+//   useEffect(() => {}, []);
 
-  //const { getSession, logout } = useContext(AccountContext);
-  const routing = useRoutes(routes(Pool.getCurrentUser()));
-  //console.log(Pool.getCurrentUser());
-  return routing;
-};
-export { RoutesView };
+//   //const { getSession, logout } = useContext(AccountContext);
+//   const routing = useRoutes(routes(Pool.getCurrentUser()));
+//   //console.log(Pool.getCurrentUser());
+//   return routing;
+// };
+export default routes;
