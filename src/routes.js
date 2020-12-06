@@ -11,17 +11,22 @@ import NotFoundView from 'src/views/errors/NotFoundView';
 import ProductListView from 'src/views/product/ProductListView';
 import RegisterView from 'src/views/auth/RegisterView';
 import SettingsView from 'src/views/settings/SettingsView';
+import AccountConfirmationView from 'src/views/auth/AccountConfirmationView';
 import { Account, AccountContext } from 'src/views/auth/Account';
 import Pool from 'src/views/auth/cognitoClient';
 
 const routes = [
   {
     path: 'app',
-    element: <DashboardLayout />,
+    element: Pool.getCurrentUser() ? (
+      <DashboardLayout />
+    ) : (
+      <Navigate to="/login" />
+    ),
     children: [
+      { path: 'dashboard', element: <DashboardView /> },
       { path: 'account', element: <AccountView /> },
       { path: 'customers', element: <CustomerListView /> },
-      { path: 'dashboard', element: <DashboardView /> },
       { path: 'products', element: <ProductListView /> },
       { path: 'settings', element: <SettingsView /> },
       { path: '*', element: <Navigate to="/404" /> }
@@ -37,7 +42,8 @@ const routes = [
       { path: '/', element: <Navigate to="/app/dashboard" /> },
       { path: '*', element: <Navigate to="/404" /> }
     ]
-  }
+  },
+  { path: 'confirm-account/:id', element: <AccountConfirmationView /> }
 ];
 // const RoutesView = props => {
 //   const [User, setUser] = useState([]);

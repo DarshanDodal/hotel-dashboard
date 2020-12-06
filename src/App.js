@@ -16,12 +16,12 @@ const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyles />
-      {/* <Account>
-        <RoutesView />
-      </Account> */}
-      {/* {routing} */}
-      <PublicRouteComponents path="/" />
-      <PrivateRoute path="/app" components={PrivateRouteComponents} />
+      <Account>
+        {/* <RoutesView /> */}
+        {routing}
+      </Account>
+      {/* <PublicRouteComponents path="/" />
+      <PrivateRoute path="/app" components={PrivateRouteComponents} /> */}
     </ThemeProvider>
   );
 };

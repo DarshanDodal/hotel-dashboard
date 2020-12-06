@@ -41,6 +41,7 @@ const LoginView = () => {
   const [open, setOpen] = React.useState(false);
   const [severity, setSeverity] = React.useState('');
   const [message, setMessage] = React.useState('');
+  const [submitted, setSubmitted] = React.useState(false);
 
   const navigate = useNavigate();
 
@@ -87,21 +88,22 @@ const LoginView = () => {
 
               user.authenticateUser(authDetails, {
                 onSuccess: data => {
-                  console.log('onSuccess:', data);
-                  navigate('/app/dashboard', { replace: true });
+                  navigate('/app/dashboard', { state: data, replace: true });
+                  //console.log('onSuccess:', data);
                 },
 
                 onFailure: err => {
                   setSeverity('error');
                   setMessage(err.message);
                   setOpen(true);
-                  console.error('onFailure:', err);
+                  // console.error('onFailure:', err);
                 },
 
                 newPasswordRequired: data => {
                   console.log('newPasswordRequired:', data);
                 }
               });
+              action.setSubmitting(false);
             }}
           >
             {({
@@ -118,15 +120,15 @@ const LoginView = () => {
                   <Typography color="textPrimary" variant="h2">
                     Sign in
                   </Typography>
-                  <Typography
+                  {/* <Typography
                     color="textSecondary"
                     gutterBottom
                     variant="body2"
                   >
                     Sign in on the internal platform
-                  </Typography>
+                  </Typography> */}
                 </Box>
-                <Grid container spacing={3}>
+                {/* <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
                     <Button
                       color="primary"
@@ -159,7 +161,7 @@ const LoginView = () => {
                   >
                     or login with email address
                   </Typography>
-                </Box>
+                </Box> */}
                 <TextField
                   error={Boolean(touched.email && errors.email)}
                   fullWidth
@@ -189,7 +191,7 @@ const LoginView = () => {
                 <Box my={2}>
                   <Button
                     color="primary"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || submitted}
                     fullWidth
                     size="large"
                     type="submit"

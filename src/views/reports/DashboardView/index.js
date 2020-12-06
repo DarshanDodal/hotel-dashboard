@@ -1,9 +1,5 @@
-import React from 'react';
-import {
-  Container,
-  Grid,
-  makeStyles
-} from '@material-ui/core';
+import React, { useContext, useEffect } from 'react';
+import { Container, Grid, makeStyles } from '@material-ui/core';
 import Page from 'src/components/Page';
 import Budget from './Budget';
 import LatestOrders from './LatestOrders';
@@ -13,8 +9,10 @@ import TasksProgress from './TasksProgress';
 import TotalCustomers from './TotalCustomers';
 import TotalProfit from './TotalProfit';
 import TrafficByDevice from './TrafficByDevice';
-
-const useStyles = makeStyles((theme) => ({
+import Pool from '../../auth/cognitoClient';
+// import { AccountContext } from '../../auth/Account';
+import getProfile from '../../../server/getProfile';
+const useStyles = makeStyles(theme => ({
   root: {
     backgroundColor: theme.palette.background.dark,
     minHeight: '100%',
@@ -25,61 +23,27 @@ const useStyles = makeStyles((theme) => ({
 
 const Dashboard = () => {
   const classes = useStyles();
-
+  getProfile();
+  // const { getSession, getUsername, authenticate } = useContext(AccountContext);
+  // console.log(getUsername());
   return (
-    <Page
-      className={classes.root}
-      title="Dashboard"
-    >
+    <Page className={classes.root} title="Dashboard">
       <Container maxWidth={false}>
-        <Grid
-          container
-          spacing={3}
-        >
-          <Grid
-            item
-            lg={3}
-            sm={6}
-            xl={3}
-            xs={12}
-          >
+        <Grid container spacing={3}>
+          <Grid item lg={3} sm={6} xl={3} xs={12}>
             <Budget />
           </Grid>
-          <Grid
-            item
-            lg={3}
-            sm={6}
-            xl={3}
-            xs={12}
-          >
+          <Grid item lg={3} sm={6} xl={3} xs={12}>
             <TotalCustomers />
           </Grid>
-          <Grid
-            item
-            lg={3}
-            sm={6}
-            xl={3}
-            xs={12}
-          >
+          <Grid item lg={3} sm={6} xl={3} xs={12}>
             <TasksProgress />
           </Grid>
-          <Grid
-            item
-            lg={3}
-            sm={6}
-            xl={3}
-            xs={12}
-          >
+          <Grid item lg={3} sm={6} xl={3} xs={12}>
             <TotalProfit />
           </Grid>
-         
-          <Grid
-            item
-            lg={12}
-            md={12}
-            xl={12}
-            xs={12}
-          >
+
+          <Grid item lg={12} md={12} xl={12} xs={12}>
             <LatestOrders />
           </Grid>
           {/* <Grid
@@ -91,25 +55,12 @@ const Dashboard = () => {
           >
             <LatestProducts />
           </Grid> */}
-          <Grid
-            item
-            lg={8}
-            md={12}
-            xl={9}
-            xs={12}
-          >
+          <Grid item lg={8} md={12} xl={9} xs={12}>
             <Sales />
           </Grid>
-          <Grid
-            item
-            lg={4}
-            md={6}
-            xl={3}
-            xs={12}
-          >
+          <Grid item lg={4} md={6} xl={3} xs={12}>
             <TrafficByDevice />
           </Grid>
-      
         </Grid>
       </Container>
     </Page>

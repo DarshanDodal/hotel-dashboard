@@ -23,16 +23,41 @@ const Account = props => {
   //       }
   //     });
 
+  const getUsername = () => {
+    const user = Pool.getCurrentUser();
+    return user.username;
+  };
+
   const getSession = async () =>
     await new Promise((resolve, reject) => {
       const user = Pool.getCurrentUser();
       if (user) {
-        user.getSession((err, session) => {
+        user.getSession(async (err, session) => {
           if (err) {
             reject();
           } else {
-            setLoggedIn(true);
-            resolve(session);
+            const attributes = await new Promise((resolve, reject) => {
+              user.getUserAttributes((err, attributes) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  const results = {};
+
+                  for (let attribute of attributes) {
+                    const { Name, Value } = attribute;
+                    results[Name] = Value;
+                  }
+
+                  resolve(results);
+                }
+              });
+            });
+
+            resolve({
+              user,
+              ...session,
+              ...attributes
+            });
           }
         });
       } else {
@@ -78,7 +103,8 @@ const Account = props => {
         authenticate,
         getSession,
         logout,
-        logedIn
+        logedIn,
+        getUsername
       }}
     >
       {props.children}

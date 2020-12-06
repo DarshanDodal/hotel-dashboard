@@ -13,7 +13,10 @@ import {
   TextField,
   makeStyles
 } from '@material-ui/core';
-import { AccountContext } from 'src/views/auth/Account';
+//import { AccountContext } from 'src/views/auth/Account';
+//import { Pool } from '@material-ui/icons';
+import Pool from '../../auth/cognitoClient';
+//
 
 const states = [
   {
@@ -57,12 +60,16 @@ const ProfileDetails = ({ className, ...rest }) => {
     });
   };
 
+  const onLogout = () => {
+    Pool.getCurrentUser().signOut();
+    navigate('/login', { replace: true });
+  };
+
   // const handleOnClickLogout = LogOut => {
   //   LogOut();
   //   navigate('/login', { replace: true });
   // };
   // const { logout } = useContext(AccountContext);
-
   const navigate = useNavigate();
   return (
     <form
@@ -124,12 +131,12 @@ const ProfileDetails = ({ className, ...rest }) => {
             <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
-                label="Liscense Number"
+                label="License Number"
                 name="number"
                 onChange={handleChange}
                 required
                 value={values.liscense}
-                placeholder="Liscense Number"
+                placeholder="License Number"
               />
             </Grid>
             <Grid item md={3} xs={6}>
@@ -204,7 +211,7 @@ const ProfileDetails = ({ className, ...rest }) => {
           <Button
             color="primary"
             variant="contained"
-            onClick={navigate('/login', { replace: true })}
+            onClick={onLogout}
             to="/login"
           >
             Log Out

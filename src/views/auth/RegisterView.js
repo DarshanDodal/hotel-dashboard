@@ -17,6 +17,7 @@ import {
 import Page from 'src/components/Page';
 import { CognitoUserAttribute, CognitoUser } from 'amazon-cognito-identity-js';
 import UserPool from './cognitoClient';
+import createBlankProfile from '../../utils/newBlankProfile.js';
 import MuiAlert from '@material-ui/lab/Alert';
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -45,7 +46,6 @@ const RegisterView = () => {
 
     setOpen(false);
   };
-
   return (
     <Page className={classes.root} title="Register">
       <Box
@@ -84,7 +84,7 @@ const RegisterView = () => {
             })}
             onSubmit={(values, actions) => {
               setTimeout(() => {
-                alert(JSON.stringify(values, null, 2));
+                //alert(JSON.stringify(values, null, 2));
                 var attributeList = [];
                 var dataFirstName = {
                   Name: 'custom:firstName',
@@ -120,14 +120,15 @@ const RegisterView = () => {
                       setSeverity('error');
                       setMessage(err.message);
                       setOpen(true);
-                      console.log(err);
+                      // console.log(err);
                       return;
                     }
-                    var cognitoUser = result.user;
-                    console.log(result);
                     setSeverity('success');
-                    setMessage('Account created sucessfully!');
+                    setMessage(
+                      'Account created sucessfully!. Please check your email for account confirmation.'
+                    );
                     setOpen(true);
+                    navigate('/login', { replace: true });
                   }
                 );
                 actions.setSubmitting(false);
