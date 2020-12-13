@@ -142,12 +142,12 @@ const ProfileDetails = ({ className, ...rest }) => {
         config
       )
       .then(res => {
-        console.log(res.data.file);
+        // console.log(res.data.file);
         setTemp(res.data.file);
         setSeverity('success');
         setMessage('SUCCESS!');
         setOpen(true);
-        console.log(licenseDoc);
+        // console.log(licenseDoc);
       })
       .catch(error => {
         setSeverity('error');

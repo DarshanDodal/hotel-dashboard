@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import clsx from 'clsx';
@@ -19,7 +19,12 @@ import {
   DialogContent,
   DialogTitle,
   DialogActions,
-  Button
+  Button,
+  Snackbar,
+  Tooltip,
+  Input,
+  InputLabel,
+  CircularProgress
 } from '@material-ui/core';
 import { Search as SearchIcon } from 'react-feather';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
@@ -29,6 +34,14 @@ import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import { MenuDB, FileUploadMicroservice } from '../../../server/links';
+import MuiAlert from '@material-ui/lab/Alert';
+import SyncIcon from '@material-ui/icons/Sync';
+import Pool from '../../auth/cognitoClient';
+const axios = require('axios');
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -71,10 +84,31 @@ const StyledMenuItem = withStyles(theme => ({
   }
 }))(MenuItem);
 
-const Toolbar = ({ className, ...rest }) => {
+const Toolbar = ({ className, onSync, ...rest }) => {
   const classes = useStyles();
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const [fileChosen, setFileChosen] = React.useState(false);
+  const [file, setFile] = React.useState('');
+  const [temp, setTemp] = React.useState(null);
+  const [name, setName] = React.useState('');
+  const [price, setPrice] = React.useState('');
+  const [category, setCategory] = React.useState('');
+
+  const [open, setOpen] = React.useState(false);
+  const [severity, setSeverity] = React.useState('');
+  const [message, setMessage] = React.useState('');
+
+  const [Loading, setLoading] = React.useState(false);
+
+  const handleSnackBarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
 
   const handleDialogOpen = () => {
     setDialogOpen(true);
@@ -82,6 +116,11 @@ const Toolbar = ({ className, ...rest }) => {
 
   const handleDialogClose = () => {
     setDialogOpen(false);
+    setFile('');
+    setTemp(null);
+    setName('');
+    setPrice('');
+    setCategory('');
   };
 
   const handleClick = event => {
@@ -91,6 +130,120 @@ const Toolbar = ({ className, ...rest }) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const handleNameChange = event => {
+    setName(event.target.value);
+  };
+  const handlePriceChange = event => {
+    setPrice(event.target.value);
+  };
+  const handleCategoryChange = event => {
+    setCategory(event.target.value);
+  };
+
+  const handleFileChoose = event => {
+    setTemp(event.target.files[0]);
+  };
+
+  const handleNewDish = event => {
+    event.preventDefault();
+    fetch(MenuDB + '/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: JSON.stringify({
+        HotelId: Pool.getCurrentUser().username,
+        name: name,
+        price: price,
+        category: category,
+        image: '-'
+      })
+    })
+      .then(response => response.json())
+      .then(response => {
+        // console.log(response);
+        if (response.error) {
+          setSeverity('error');
+          setMessage(response.message);
+          setOpen(true);
+          return;
+        }
+        const config = {
+          headers: {
+            'content-type': 'multipart/form-data'
+          }
+        };
+
+        const formData = new FormData();
+        formData.append('file', temp);
+
+        axios
+          .post(
+            FileUploadMicroservice +
+              //FileUploadMicroservice +
+              '/upload-dish-img' +
+              `?imgName=${response.data}`,
+            formData,
+            config
+          )
+          .then(res => {
+            // console.log(res);
+            fetch(MenuDB + '/update-one' + '/' + response.data, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json'
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: JSON.stringify({
+                hotel: Pool.getCurrentUser().username,
+                updates: [
+                  {
+                    query: 'image',
+                    value: res.data.file
+                  }
+                ]
+              })
+            })
+              .then(response => response.json())
+              .then(response => {
+                //console.log(response);
+                if (response.error) {
+                  setSeverity('error');
+                  setMessage(response.message);
+                  setOpen(true);
+                }
+                setSeverity('success');
+                setMessage('SUCCESS!');
+                setOpen(true);
+              })
+              .catch(err => {
+                setSeverity('error');
+                setMessage(err.message);
+                setOpen(true);
+              });
+          })
+          .catch(error => {
+            setSeverity('error');
+            setMessage(error.message);
+            setOpen(true);
+          });
+        setSeverity('success');
+        setMessage('SUCCESS!');
+        setOpen(true);
+      })
+      .catch(err => {
+        setSeverity('error');
+        setMessage(err.message);
+        setOpen(true);
+      });
+
+    setLoading(false);
+    handleClose();
+  };
+
+  // const handleFileUpload = () => {};
 
   return (
     <div className={clsx(classes.root, className)} {...rest}>
@@ -109,10 +262,11 @@ const Toolbar = ({ className, ...rest }) => {
                     </InputAdornment>
                   )
                 }}
-                placeholder="Search product"
+                placeholder="Search Dish"
                 variant="outlined"
               />
             </Box>
+
             <Box style={{ display: 'inline-block', float: 'right' }}>
               <Fab
                 variant="extended"
@@ -130,36 +284,94 @@ const Toolbar = ({ className, ...rest }) => {
               >
                 <DialogTitle id="form-dialog-title">New Dish</DialogTitle>
                 <DialogContent>
-                  <Button
+                  <InputLabel>Dish Image</InputLabel>
+                  <br />
+                  <Box classes={{ root: classes.uploadDiv }}>
+                    <Button
+                      color="primary"
+                      variant="contained"
+                      component="label"
+                    >
+                      Choose
+                      <Input
+                        type="file"
+                        name="file"
+                        hidden
+                        color="primary"
+                        onChange={handleFileChoose}
+                        filename={temp}
+                      />
+                    </Button>
+                    {/* {fileChosen ? (
+              <Button
+                onClick={handleFileUpload}
+                color="primary"
+                variant="contained"
+                component="label"
+                classes={{ root: classes.Button }}
+                name="licenseDoc"
+              >
+                Upload
+              </Button>
+            ) : null} */}
+                  </Box>
+
+                  <InputLabel fullwidth color="primary" shrink>
+                    <a href={file}>{file}</a>
+                  </InputLabel>
+                  {/* <Button
                     variant="contained"
                     color="primary"
                     className={classes.button}
                     endIcon={<CloudUploadIcon />}
                   >
                     Upload New Image
-                  </Button>
+                  </Button> */}
                   <TextField
                     autoFocus
                     margin="dense"
                     id="name"
-                    label="Name of Dish"
+                    label="Dish Name"
                     type="text"
+                    name="name"
                     fullWidth
+                    value={name}
+                    onChange={handleNameChange}
                   />
                   <TextField
                     autoFocus
                     margin="dense"
-                    id="cost"
-                    label="Cost of Dish"
+                    id="price"
+                    label="Price"
                     type="number"
+                    name="price"
                     fullWidth
+                    value={price}
+                    onChange={handlePriceChange}
+                  />
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="category"
+                    label="Category"
+                    type="text"
+                    name="category"
+                    fullWidth
+                    value={category}
+                    onChange={handleCategoryChange}
                   />
                 </DialogContent>
                 <DialogActions>
+                  {Loading ? (
+                    <CircularProgress
+                      size={24}
+                      className={classes.buttonProgress}
+                    />
+                  ) : null}
                   <Button onClick={handleDialogClose} color="primary">
                     Cancel
                   </Button>
-                  <Button onClick={handleDialogClose} color="primary">
+                  <Button onClick={handleNewDish} color="primary">
                     Add Dish
                   </Button>
                 </DialogActions>
@@ -196,9 +408,27 @@ const Toolbar = ({ className, ...rest }) => {
                 </StyledMenuItem>
               </StyledMenu>
             </Box>
+            <Box
+              style={{ display: 'inline-block', float: 'right', marginTop: 5 }}
+            >
+              <Tooltip title="Refresh">
+                <IconButton size="large" onClick={onSync} aria-label="delete">
+                  <SyncIcon size="large" color="primary" />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </CardContent>
         </Card>
       </Box>
+      <Snackbar
+        open={open}
+        autoHideDuration={6000}
+        onClose={handleSnackBarClose}
+      >
+        <Alert onClose={handleSnackBarClose} severity={severity}>
+          {message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

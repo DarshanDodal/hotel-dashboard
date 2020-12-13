@@ -22,8 +22,11 @@ import EditIcon from '@material-ui/icons/Edit';
 import FavoriteIcon from '@material-ui/icons/Favorite';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import DeleteIcon from '@material-ui/icons/Delete';
+import EditDialog from './EditDialog';
+import { MenuDB } from '../../../server/links';
+import { useEffect } from 'react';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
     flexDirection: 'column'
@@ -36,12 +39,11 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(1)
   },
   media: {
-    height: 180,
-  },
-  
+    height: 180
+  }
 }));
 
-const ProductCard = ({ className, product, ...rest }) => {
+const ProductCard = ({ className, dish, ...rest }) => {
   const classes = useStyles();
 
   const [open, setOpen] = React.useState(false);
@@ -55,106 +57,58 @@ const ProductCard = ({ className, product, ...rest }) => {
   };
   return (
     <>
-    <Card
-      className={clsx(classes.root, className)}
-      {...rest}
-    > 
+      <Card className={clsx(classes.root, className)} {...rest}>
         <CardMedia
           className={classes.media}
-          image={product.media}
-          title={product.title}
+          image={dish.image}
+          title={dish.name}
         />
-      <CardContent>
-        <Typography
-          align="center"
-          color="textPrimary"
-          gutterBottom
-          variant="h5"
-        >
-          {product.title}
-        </Typography>
-        <Typography
-          align="center"
-          color="textPrimary"
-          variant="h6"
-        >
-        <i>{product.cost} /-</i>
-        </Typography>
-      </CardContent>
-      <Box flexGrow={1} />
-      <Divider />
-      <Box p={2}>
-        <Grid
-          container
-          justify="space-between"
-          spacing={2}
-        >
-          <Grid
-            className={classes.statsItem}
-            item
+        <CardContent>
+          <Typography
+            align="center"
+            color="textSecondary"
+            gutterBottom
+            variant="h5"
           >
-            <IconButton aria-label="delete" onClick={handleClickOpen}>
-              <EditIcon color="action" />
-            </IconButton>
-          </Grid>
-          <Grid
-            className={classes.statsItem}
-            item
+            {dish.category}
+          </Typography>
+          <Typography
+            align="center"
+            color="textPrimary"
+            gutterBottom
+            variant="h5"
           >
-            <FavoriteIcon
-              className={classes.statsIcon}
-              color= 'secondary'
-            />
-            <Typography
-              color="textSecondary"
-              display="inline"
-              variant="body2"
-            >
-              {product.totalDownloads}
-              {' '}
-              Likes
-            </Typography>
+            {dish.name}
+          </Typography>
+
+          <Typography align="center" color="textPrimary" variant="h6">
+            <i>{dish.price} /-</i>
+          </Typography>
+        </CardContent>
+        <Box flexGrow={1} />
+        <Divider />
+        <Box p={2}>
+          <Grid container justify="space-between" spacing={2}>
+            <Grid className={classes.statsItem} item>
+              <IconButton aria-label="delete" onClick={handleClickOpen}>
+                <EditIcon color="action" />
+              </IconButton>
+            </Grid>
+            <Grid className={classes.statsItem} item>
+              <FavoriteIcon className={classes.statsIcon} color="secondary" />
+              <Typography
+                color="textSecondary"
+                display="inline"
+                variant="body2"
+              >
+                {'300'} Likes
+              </Typography>
+            </Grid>
           </Grid>
-        </Grid>
-      </Box>
-    </Card>
-    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Edit Dish</DialogTitle>
-        <DialogContent>
-        <Button
-          variant="contained"
-          color="primary"
-          className={classes.button}
-          endIcon={<CloudUploadIcon />}
-        >
-          Upload New Image
-        </Button>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="name"
-            label="Edit Title"
-            type="text"
-            fullWidth
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-              startIcon={<DeleteIcon />} 
-              color= 'secondary'
-              style={{left: 15, position: 'absolute'}}
-            >
-              Delete
-          </Button>
-          <Button onClick={handleClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleClose} color="primary">
-            Done
-          </Button>
-        </DialogActions>
-      </Dialog>
-  </>
+        </Box>
+      </Card>
+      <EditDialog handleClose={handleClose} dish={dish} openDialog={open} />
+    </>
   );
 };
 
