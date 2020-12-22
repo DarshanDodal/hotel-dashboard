@@ -412,7 +412,7 @@ const Toolbar = ({ className, onSync, ...rest }) => {
               style={{ display: 'inline-block', float: 'right', marginTop: 5 }}
             >
               <Tooltip title="Refresh">
-                <IconButton size="large" onClick={onSync} aria-label="delete">
+                <IconButton onClick={onSync} aria-label="delete">
                   <SyncIcon size="large" color="primary" />
                 </IconButton>
               </Tooltip>

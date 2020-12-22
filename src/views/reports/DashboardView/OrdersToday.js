@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import {
@@ -13,8 +13,10 @@ import {
 } from '@material-ui/core';
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import PeopleIcon from '@material-ui/icons/PeopleOutlined';
+import { FetchOrder } from './Helper/FetchTodaysOrder';
+import { useDispatch, useSelector } from 'react-redux';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     height: '100%'
   },
@@ -34,31 +36,29 @@ const useStyles = makeStyles((theme) => ({
 
 const TotalCustomers = ({ className, ...rest }) => {
   const classes = useStyles();
+  const [TotalOrders, setTotalOrders] = useState('');
+
+  const { refresh } = useSelector(state => {
+    return state;
+  });
+
+  useEffect(() => {
+    FetchOrder(function(totalOrders, Sales) {
+      // console.log(totalOrders);
+      setTotalOrders(totalOrders);
+    });
+  }, [refresh]);
 
   return (
-    <Card
-      className={clsx(classes.root, className)}
-      {...rest}
-    >
+    <Card className={clsx(classes.root, className)} {...rest}>
       <CardContent>
-        <Grid
-          container
-          justify="space-between"
-          spacing={3}
-        >
+        <Grid container justify="space-between" spacing={3}>
           <Grid item>
-            <Typography
-              color="textSecondary"
-              gutterBottom
-              variant="h6"
-            >
-              TOTAL CUSTOMERS
+            <Typography color="textSecondary" gutterBottom variant="h6">
+              TOTAL ORDERS TODAY
             </Typography>
-            <Typography
-              color="textPrimary"
-              variant="h3"
-            >
-              1,600
+            <Typography color="textPrimary" variant="h3">
+              {TotalOrders || 0}
             </Typography>
           </Grid>
           <Grid item>
@@ -67,22 +67,12 @@ const TotalCustomers = ({ className, ...rest }) => {
             </Avatar>
           </Grid>
         </Grid>
-        <Box
-          mt={2}
-          display="flex"
-          alignItems="center"
-        >
+        <Box mt={2} display="flex" alignItems="center">
           <ArrowUpwardIcon className={classes.differenceIcon} />
-          <Typography
-            className={classes.differenceValue}
-            variant="body2"
-          >
+          <Typography className={classes.differenceValue} variant="body2">
             16%
           </Typography>
-          <Typography
-            color="textSecondary"
-            variant="caption"
-          >
+          <Typography color="textSecondary" variant="caption">
             Since last month
           </Typography>
         </Box>

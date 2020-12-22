@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import {
@@ -24,6 +24,12 @@ import {
   Users as UsersIcon
 } from 'react-feather';
 import NavItem from './NavItem';
+import { HotelDBAPI } from '../../../server/links';
+import Pool from '../../../views/auth/cognitoClient';
+import Ratings from './FetchRatings';
+import Amplify, { Auth, API, graphqlOperation } from 'aws-amplify';
+import { createHotelRatings } from '../../../graphql/mutations';
+import { listHotelRatingss } from '../../../graphql/queries';
 
 const user = {
   avatar: '/static/images/avatars/avatar_6.png',
@@ -93,11 +99,42 @@ const useStyles = makeStyles(() => ({
 const NavBar = ({ onMobileClose, openMobile }) => {
   const classes = useStyles();
   const location = useLocation();
+  const [image, setImage] = useState('');
+  const [rating, setRating] = useState(0);
+  const [votes, setVotes] = useState(0);
+  const [name, setName] = useState('');
   useEffect(() => {
     if (openMobile && onMobileClose) {
       onMobileClose();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetch(HotelDBAPI + '/get-one?username=' + Pool.getCurrentUser().username)
+      .then(response => response.json())
+      .then(data => {
+        setImage(data.data.Item.image);
+        setName(data.data.Item.hotelName);
+        API.graphql(
+          graphqlOperation(listHotelRatingss, {
+            filter: {
+              HotelID: {
+                eq: Pool.getCurrentUser().username
+              }
+            }
+          })
+        )
+          .then(data => {
+            const ratingData = data.data.listHotelRatingss.items;
+            const length = ratingData.length;
+            let sum = 0;
+            ratingData.forEach((cv, index) => {
+              sum = sum + cv.rating;
+            });
+            setRating(sum / length);
+            setVotes(length);
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      });
   }, [location.pathname]);
 
   const content = (
@@ -106,15 +143,18 @@ const NavBar = ({ onMobileClose, openMobile }) => {
         <Avatar
           className={classes.avatar}
           component={RouterLink}
-          src={user.avatar}
+          src={image}
           to="/app/account"
         />
         <Typography className={classes.name} color="textPrimary" variant="h5">
-          {user.name}
+          {name}
         </Typography>
         <Typography color="textSecondary" variant="body2">
-          <Rating name="read-only" value={user.rating} size="small" readOnly />
+          <Rating name="read-only" value={rating} size="small" readOnly />
         </Typography>
+        <h6 style={{ color: 'rgba(0, 0, 0,0.5)' }}>
+          {votes} {votes > 1 ? 'VOTES' : 'VOTE'}
+        </h6>
       </Box>
       <Divider />
       <Box p={2}>

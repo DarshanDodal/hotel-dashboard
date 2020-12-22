@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import moment from 'moment';
 import { v4 as uuid } from 'uuid';
@@ -22,9 +22,33 @@ import {
   InputLabel,
   MenuItem,
   FormControl,
-  Select
+  Select,
+  IconButton
 } from '@material-ui/core';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
+import Amplify, { Auth, API, graphqlOperation } from 'aws-amplify';
+import { onCreateOrders, onUpdateOrders } from '../../../graphql/subscriptions';
+import { listOrderss } from '../../../graphql/queries';
+import { sum } from './Helper/totaler';
+import { OrdersAPI } from '../../../server/links';
+import SyncIcon from '@material-ui/icons/Sync';
+
+import Pool from '../../auth/cognitoClient';
+import { useDispatch, useSelector } from 'react-redux';
+
+// Subscribe to creation of Todo
+// const subscription = API.graphql(
+//   graphqlOperation(subscriptions.onCreateOrders)
+// ).subscribe({
+//   next: ({ provider, value }) => console.log({ provider, value })
+// });
+
+// API.graphql({
+//   query: subscriptions.onCreateOrders,
+//   authMode: 'AMAZON_COGNITO_USER_POOLS'
+// });
+
+// console.log(subscription);
 
 const data = [
   {
@@ -142,29 +166,120 @@ const useStyles = makeStyles(theme => ({
 
 const LatestOrders = ({ className, ...rest }) => {
   const classes = useStyles();
-  const [orders] = useState(data);
+  const [orders, setOrders] = useState([]);
+  const [Refresh, setRefresh] = useState(false);
 
   const [status, setStatus] = React.useState('');
+
+  const dispatch = useDispatch();
+  const { refresh } = useSelector(state => {
+    return state;
+  });
 
   const handleChange = event => {
     setStatus(event.target.value);
   };
 
+  useEffect(() => {
+    Auth.currentUserInfo().then(user => {
+      // console.log("Email", e);
+      // console.log(user);
+      fetch(
+        OrdersAPI +
+          '/api/get-active-orders-by-hotel' +
+          `?hotel=${user.username}&active=true`
+      )
+        .then(response => response.json())
+        .then(data => {
+          // if (data.error) {
+          //   // setLoading(false);
+          // }
+          // console.log('ORDERS:', data.data);
+          setOrders(data.data);
+          // setLoading(false);
+        })
+        .catch(error => {
+          // setLoading(false);
+        });
+    });
+  }, [Refresh]);
+  const getOrder = async () => {
+    // const list = await API.graphql(graphqlOperation(listOrderss));
+    // console.log(list);
+    console.log('Get all orders here');
+    // .then(result => {
+    //   console.log(result);
+    // });
+    // .subscribe({
+    //   next: ({ provider, value }) => console.log({ provider, value })
+    // });
+  };
+  API.graphql(graphqlOperation(onCreateOrders)).subscribe({
+    next: ({ provider, value }) => {
+      if (value.data.onCreateOrders.HotelId === Pool.getCurrentUser.username) {
+        setRefresh(!Refresh);
+        dispatch({ type: 'REFRESH', payload: !refresh });
+      }
+    }
+  });
+  API.graphql(graphqlOperation(onUpdateOrders)).subscribe({
+    next: ({ provider, value }) => {
+      if (value.data.onCreateOrders.HotelId === Pool.getCurrentUser.username) {
+        setRefresh(!Refresh);
+      }
+    }
+  });
+
+  const deactivateOrder = options => {
+    fetch(
+      OrdersAPI + '/api/order-deactivate', //URL.OrdersAPI
+      {
+        method: 'POST',
+        body: JSON.stringify({ orders: options }),
+        //mode: "cors",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+      .then(response => response.json())
+      .then(function(response) {
+        setRefresh(!Refresh);
+        // console.log(JSON.stringify(response));
+      })
+      .catch(function(err) {
+        console.log(err);
+      });
+  };
+
+  const onSync = () => {
+    setRefresh(!Refresh);
+  };
+
   return (
     <Card className={clsx(classes.root, className)} {...rest}>
-      <CardHeader title="Latest Orders" />
+      <Box style={{ display: 'flex', flexDirection: 'row' }}>
+        <CardHeader title="Latest Orders"></CardHeader>
+        <Tooltip title="Refresh">
+          <IconButton size="large" onClick={onSync} aria-label="delete">
+            <SyncIcon size="large" color="primary" />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
       <Divider />
       <PerfectScrollbar>
         <Box minWidth={800}>
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell>Table Number</TableCell>
                 <TableCell>Order Id</TableCell>
                 <TableCell>Customer</TableCell>
                 <TableCell sortDirection="desc">
                   <Tooltip enterDelay={300} title="Sort">
                     <TableSortLabel active direction="desc">
-                      Date
+                      Date and Time
                     </TableSortLabel>
                   </Tooltip>
                 </TableCell>
@@ -172,28 +287,34 @@ const LatestOrders = ({ className, ...rest }) => {
                 <TableCell>Dish and Quantity</TableCell>
                 {/* <TableCell>Status</TableCell> */}
                 <TableCell>Order Total</TableCell>
+                <TableCell>Order Status</TableCell>
               </TableRow>
             </TableHead>
 
             <TableBody>
               {orders.map(order => (
                 <TableRow hover key={order.id}>
-                  <TableCell>{order.ref}</TableCell>
-                  <TableCell>{order.customer.name}</TableCell>
+                  <TableCell>{order.tableNumber}</TableCell>
+                  <TableCell>{order.id}</TableCell>
+                  <TableCell>{order.visitor}</TableCell>
                   <TableCell>
-                    {moment(order.createdAt).format('DD/MM/YYYY')}
+                    {new Date(parseInt(order.timestamp)).toLocaleDateString()}
+                    {/* {moment(neworder.createdAt).format('DD/MM/YYYY')} */}
                   </TableCell>
-                  <TableCell>{order.time}</TableCell>
+                  <TableCell>
+                    {new Date(parseInt(order.timestamp)).toLocaleTimeString()}
+                  </TableCell>
                   <TableCell>
                     {order.dishes.map(dish => {
                       return (
-                        <div className={classes.dishDisp}>
-                          <p>• {dish.name} -</p>
+                        <div key={dish.name} className={classes.dishDisp}>
+                          <p> {dish.name} -</p>
                           <p>{dish.quantity}</p>
                         </div>
                       );
                     })}
                   </TableCell>
+
                   {/* <TableCell>
                     <FormControl className={classes.formControl}>
                       <InputLabel id="demo-simple-select-label">
@@ -211,7 +332,18 @@ const LatestOrders = ({ className, ...rest }) => {
                       </Select>
                     </FormControl>
                   </TableCell> */}
-                  <TableCell>{order.price} /-</TableCell>
+                  <TableCell>{sum(order.dishes)} /-</TableCell>
+                  <TableCell>
+                    Active
+                    <Button
+                      value={order.id}
+                      onClick={() => {
+                        deactivateOrder([order.id]);
+                      }}
+                    >
+                      Deactivate
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -224,6 +356,7 @@ const LatestOrders = ({ className, ...rest }) => {
           endIcon={<ArrowRightIcon />}
           size="small"
           variant="text"
+          onClick={getOrder}
         >
           View all
         </Button>

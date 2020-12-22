@@ -27,6 +27,7 @@ import {
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import getProfile from '../../server/getProfile';
+import { useNavigate } from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -47,6 +48,8 @@ const useStyles = makeStyles(theme => ({
 const EmptyProfile = ({ className, children }) => {
   const classes = useStyles();
   const [profileEmpty, setProfileEmpty] = useState(false);
+
+  const navigate = useNavigate();
   const Profile = () => {
     getProfile().then(profile => {
       if (Object.keys(profile.data).length === 0) {
@@ -54,6 +57,9 @@ const EmptyProfile = ({ className, children }) => {
       }
     });
     return profileEmpty;
+  };
+  const handleNavigate = () => {
+    navigate('/app/account', { replace: true });
   };
   if (Profile()) {
     return (
@@ -70,6 +76,7 @@ const EmptyProfile = ({ className, children }) => {
             endIcon={<ArrowRightIcon />}
             size="small"
             variant="text"
+            onClick={handleNavigate}
           >
             Fill Profile
           </Button>

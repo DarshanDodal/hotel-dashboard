@@ -140,11 +140,7 @@ const Toolbar = ({ className, onNewTable, ...rest }) => {
             </Box>
             <Box style={{ display: 'inline-block', float: 'right' }}>
               <Tooltip title="Refresh">
-                <IconButton
-                  size="large"
-                  onClick={onNewTable}
-                  aria-label="delete"
-                >
+                <IconButton onClick={onNewTable} aria-label="delete">
                   <SyncIcon size="large" color="primary" />
                 </IconButton>
               </Tooltip>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import {
@@ -24,7 +24,11 @@ import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditDialog from './EditDialog';
 import { MenuDB } from '../../../server/links';
-import { useEffect } from 'react';
+import Amplify, { Auth, API, graphqlOperation } from 'aws-amplify';
+import { createHotelRatings } from '../../../graphql/mutations';
+import { listDishRatingss } from '../../../graphql/queries';
+import Rating from '@material-ui/lab/Rating';
+import Pool from '../../auth/cognitoClient';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -46,7 +50,9 @@ const useStyles = makeStyles(theme => ({
 const ProductCard = ({ className, dish, ...rest }) => {
   const classes = useStyles();
 
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [votes, setVotes] = useState(0);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -55,6 +61,32 @@ const ProductCard = ({ className, dish, ...rest }) => {
   const handleClose = () => {
     setOpen(false);
   };
+
+  useEffect(() => {
+    API.graphql(
+      graphqlOperation(listDishRatingss, {
+        filter: {
+          dishId: {
+            eq: dish.dishId
+          }
+        }
+      })
+    )
+      .then(data => {
+        const ratingData = data.data.listDishRatingss.items;
+        const length = ratingData.length;
+        let sum = 0;
+        ratingData.forEach((cv, index) => {
+          sum = sum + cv.rating;
+        });
+        setRating(sum / length);
+        setVotes(length);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }, []);
+
   return (
     <>
       <Card className={clsx(classes.root, className)} {...rest}>
@@ -95,14 +127,28 @@ const ProductCard = ({ className, dish, ...rest }) => {
               </IconButton>
             </Grid>
             <Grid className={classes.statsItem} item>
-              <FavoriteIcon className={classes.statsIcon} color="secondary" />
-              <Typography
-                color="textSecondary"
-                display="inline"
-                variant="body2"
-              >
-                {'300'} Likes
-              </Typography>
+              {/* <FavoriteIcon className={classes.statsIcon} color="secondary" /> */}
+              <Box display="flex" justifyContent="flex-end" p={2}>
+                <Typography
+                  color="textSecondary"
+                  display="inline"
+                  variant="body2"
+                >
+                  <Rating
+                    name="read-only"
+                    value={rating}
+                    size="small"
+                    readOnly
+                  />
+                </Typography>
+                <Typography
+                  color="textSecondary"
+                  display="inline"
+                  variant="body2"
+                >
+                  {' ' + votes}
+                </Typography>
+              </Box>
             </Grid>
           </Grid>
         </Box>
@@ -114,7 +160,7 @@ const ProductCard = ({ className, dish, ...rest }) => {
 
 ProductCard.propTypes = {
   className: PropTypes.string,
-  product: PropTypes.object.isRequired
+  product: PropTypes.object
 };
 
 export default ProductCard;

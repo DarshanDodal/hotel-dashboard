@@ -23,7 +23,6 @@ const useStyles = makeStyles(theme => ({
 
 const ProductList = () => {
   const classes = useStyles();
-  const [products] = useState(data);
   const [dishes, setDishes] = useState([]);
   const [Refresh, setRefresh] = useState(false);
 

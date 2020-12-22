@@ -1,1 +1,10 @@
-{}
+{
+  "auth": {
+    "hoteldashboard428f4955": {
+      "service": "Cognito",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": [],
+      "customAuth": false
+    }
+  }
+}

@@ -245,7 +245,7 @@ const Results = ({ className, tableData, onTableDelete, product, ...rest }) => {
 
 Results.propTypes = {
   className: PropTypes.string,
-  customers: PropTypes.array.isRequired
+  customers: PropTypes.array
 };
 
 export default Results;

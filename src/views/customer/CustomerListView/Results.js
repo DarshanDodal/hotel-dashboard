@@ -58,28 +58,42 @@ const Results = ({ className, product, newT, ...rest }) => {
       // }
     });
   }, [newT]);
-  const TableCards = () => {
-    return tables.map(table => {
-      return (
-        <Grid item lg={4} md={6} xs={12}>
-          <TableCard
-            key={table.tableId}
-            // onTableDelete={() => {
-            //   setReload(true);
-            // }}
-            classes={{ root: classes.tCard }}
-            tableData={table}
-          />
-        </Grid>
-      );
-    });
-  };
+  // const TableCards = () => {
+  //   return tables.map(table => {
+  //     return (
+  //       <Grid item lg={4} md={6} xs={12}>
+  //         <TableCard
+  //           key={table.tableId}
+  //           // onTableDelete={() => {
+  //           //   setReload(true);
+  //           // }}
+  //           classes={{ root: classes.tCard }}
+  //           tableData={table}
+  //         />
+  //       </Grid>
+  //     );
+  //   });
+  // };
 
   return (
     <Container>
       <Box mt={3}>
         <Grid container spacing={3}>
-          <TableCards />
+          {tables.map(table => {
+            return (
+              <Grid key={table.tableId} item lg={4} md={6} xs={12}>
+                <TableCard
+                  key={table.tableId}
+                  // onTableDelete={() => {
+                  //   setReload(true);
+                  // }}
+                  classes={{ root: classes.tCard }}
+                  tableData={table}
+                />
+              </Grid>
+            );
+          })}
+          {/* <TableCards /> */}
         </Grid>
       </Box>
     </Container>
@@ -89,7 +103,7 @@ const Results = ({ className, product, newT, ...rest }) => {
 
 Results.propTypes = {
   className: PropTypes.string,
-  customers: PropTypes.array.isRequired
+  customers: PropTypes.array
 };
 
 export default Results;

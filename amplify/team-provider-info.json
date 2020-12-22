@@ -10,6 +10,11 @@
       "StackName": "amplify-hoteldashboard-dev-102837",
       "StackId": "arn:aws:cloudformation:ap-south-1:493630275025:stack/amplify-hoteldashboard-dev-102837/36bf65e0-3524-11eb-9f05-0666b780c650",
       "AmplifyAppId": "d1lvszpdtcfdgp"
+    },
+    "categories": {
+      "auth": {
+        "hoteldashboard428f4955": {}
+      }
     }
   }
 }

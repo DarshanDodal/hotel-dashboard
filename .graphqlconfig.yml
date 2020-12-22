@@ -1,0 +1,18 @@
+projects:
+  OrdersAPI-dev:
+    schemaPath: src/graphql/schema.json
+    includes:
+      - src/graphql/**/*.js
+    excludes:
+      - ./amplify/**
+    extensions:
+      amplify:
+        codeGenTarget: javascript
+        generatedFileName: ''
+        docsFilePath: src/graphql
+        region: ap-south-1
+        apiId: 5vdtsfjzgjfuje56wof2dzocwy
+        maxDepth: 10
+extensions:
+  amplify:
+    version: 3
